@@ -1,0 +1,656 @@
+
+/* ===== 1. 全局容器 ===== */
+.container {
+    width: 100vw;
+}
+
+/* ===== 2. 字体预设（方便 JS 动态切换主题时复用） ===== */
+
+/* 输入框文字 */
+.font-textarea {
+    font-size: 14px;
+    font-family: "Microsoft YaHei UI", serif;
+    line-height: 18px;
+    letter-spacing: 1px;
+}
+
+/* 顶部标题文字 */
+.font-head {
+    font-size: 20px;
+    font-family: "Microsoft YaHei UI", serif;
+    font-weight: normal;
+    letter-spacing: 5px;
+    color: rgb(253 251 251);
+    text-shadow: #191919 0 0 2px;
+}
+
+/* 通用正文（侧边栏等） */
+.font-one {
+    font-size: 18px;
+    font-family: "Microsoft YaHei UI", serif;
+    font-weight: normal;
+    letter-spacing: 5px;
+    color: #191919;
+}
+
+/* ===== 3. 玻璃拟态效果（Glassmorphism） ===== */
+/*
+   原理：
+   - 半透明背景 + backdrop-filter 模糊 = 玻璃质感
+   - 多层 box-shadow 模拟厚度与边缘高光
+   - ::before / ::after 伪元素做对角线反光与暗角
+   使用注意：父级容器需要有一定背景（图片/颜色），否则模糊不可见
+*/
+.glass{
+    /* 核心：半透明背景 + 背景模糊 */
+    background: rgba(255, 255, 255, 0.04);
+    backdrop-filter: blur(1px);
+    -webkit-backdrop-filter: blur(2px); /* Safari 兼容 */
+
+    /* 多层内阴影：模拟玻璃厚度感 */
+    box-shadow:
+            inset 2px -2px 1px -1px rgba(255, 255, 255, 0.9),
+            inset -2px 2px 1px -1px rgba(255, 255, 255, 0.9),
+            inset 6px -6px 1px -6px rgba(255, 255, 255, 0.55),
+            inset -6px 6px 1px -6px rgba(255, 255, 255, 0.55),
+            inset 0 0 2px rgba(0, 0, 0, 0.8),
+            0 4px 8px rgba(0, 0, 0, 0.2);
+
+    /* 边缘与亮度 */
+    border: 1px double rgba(51, 51, 51, 0.08);
+    border-radius: 9999px;      /* 默认大圆角（胶囊形），子元素可覆盖 */
+    filter: brightness(0.95);
+
+    position: relative;
+    overflow: hidden;           /* 保证伪元素不超出圆角 */
+}
+
+/* 对角线高光（模拟玻璃表面反光） */
+.glass::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(
+            45deg,
+            rgba(255, 255, 255, 0.2) 0%,
+            transparent 15%,
+            transparent 85%,
+            rgba(255, 255, 255, 0.2) 100%
+    );
+    filter: blur(3px);
+    pointer-events: none;       /* 不阻挡鼠标事件 */
+}
+
+/* 内圈暗边（模拟玻璃折射暗角） */
+.glass::before {
+    content: '';
+    position: absolute;
+    top: 35%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: calc(100% - 16px);
+    height: calc(100% - 16px);
+    border-radius: inherit;
+    border: 1px solid rgba(0, 0, 0, 0.9);
+    filter: blur(8px);
+    pointer-events: none;
+}
+
+
+/* ===== 4. 页面根容器 ===== */
+.boot {
+    width: 100vw;
+    height: 100vh;                      /* 占满整个视口 */
+    background-image: url("../img/alice.jpeg");
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+
+    display: flex;
+    flex-direction: column;             /* 垂直排列：header → 主内容 */
+    overflow: hidden;                   /* 禁止页面级滚动，由内部区域自行滚动 */
+}
+
+/* 背景遮罩层（预留：可用于 JS 切换暗色模式等） */
+.boot::after {
+    content: "";
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    background-color: rgb(221 69 69 / 0);
+    z-index: -1;
+}
+
+
+/* ===== 5. 顶部导航栏 ===== */
+.header-bar {
+    box-sizing: border-box;
+    width: 100vw;
+    height: 60px;
+    flex-shrink: 0;                     /* 高度固定，不参与伸缩 */
+    display: flex;
+    justify-content: left;
+    align-items: center;
+    backdrop-filter: blur(3px);
+
+    /* ★ 只用 background-color / box-shadow 做过渡，不用 filter（性能好） */
+    transition: background-color 0.3s, box-shadow 0.3s;
+}
+/*
+   hover 高亮原理：
+   在 .glass 已有的半透明底 (rgba(255,255,255,0.04)) 上叠加一层更亮的白色，
+   同时加外发光阴影。完全不用 filter，动画流畅不卡。
+*/
+
+.header-bar::after {
+    background: rgb(255 255 255 / 0);
+}
+
+/* Logo 图标 */
+.header-bar .logo {
+    width: 36px;
+    height: 36px;
+    margin-left: 30px;
+    background-image: url("../img/manbo.png");
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+/* 标题文字居中 */
+.header-bar-head {
+    flex: 1;
+    text-align: center;
+}
+
+
+/* ===== 6. 主内容区（header 下方剩余空间） ===== */
+.main {
+    flex: 1;                            /* 占满剩余高度 */
+    min-height: 0;                      /* ★ 关键：允许 flex 子元素收缩到内容以下，
+                                           解决小视口下内容消失的问题 */
+    background-color: rgb(25 24 24 / 0);
+}
+
+.main-space {
+    height: 100%;
+    min-height: 0;                      /* ★ 关键：同上，防止 flex 嵌套时高度塌陷 */
+    display: flex;                      /* 水平排列：侧边栏 → 聊天区 */
+    justify-content: left;
+}
+
+
+/* ===== 7. 侧边栏 ===== */
+/* 出现动画 */
+@keyframes side-bar-out {
+    0%   { width: 250px; }
+    100% { width: 250px; }
+}
+
+.side-bar {
+    width: 250px;
+    height: 100%;
+    flex-shrink: 0;                     /* 宽度固定，不参与伸缩 */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    /* 入场动画 */
+    animation: side-bar-out 1s;
+    animation-timing-function: cubic-bezier(0.34, -0.64, 0.4, 1.66);
+    animation-delay: 0.4s;
+    animation-fill-mode: forwards;
+}
+
+/* 侧边栏内容面板 */
+.side-bar-inner {
+    box-sizing: border-box;
+    width: 96%;
+    height: 90%;
+    border-radius: 35px;                /* 覆盖 .glass 的胶囊圆角 */
+    background: rgb(72 114 221 / 0);
+    display: flex;
+    flex-direction: column;             /* 上下分区：新建按钮 + 对话列表 */
+    backdrop-filter: blur(3px);
+
+    /* ★ 只过渡 background-color / box-shadow，不碰 filter */
+    transition: background-color 0.3s, box-shadow 0.3s;
+}
+/* 覆盖玻璃高光渐变（更柔和） */
+.side-bar-inner::after {
+    background: linear-gradient(
+            45deg,
+            rgba(255, 255, 255, 0.4) 0%,
+            transparent 15%,
+            transparent 85%,
+            rgba(255, 255, 255, 0.4) 100%
+    );
+}
+/* 调整暗角位置 */
+.side-bar-inner::before {
+    top: 1%;
+    left: 52%;
+}
+
+/* 侧边栏上半部分：新建对话按钮区 */
+.side-bar-up {
+    box-sizing: border-box;
+    width: 100%;
+    height: 200px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+/* ★ "新建对话"按钮 — JS 预留：通过 id="create-new-chat" 绑定点击事件 */
+#create-new-chat {
+    width: 100%;
+    height: 50px;
+    overflow: hidden;
+    text-wrap: nowrap;
+    text-align: center;
+    line-height: 50px;
+
+    transition: background-color 0.2s, box-shadow 0.2s, transform 0.2s;
+
+    user-select: none;                  /* 禁止选中文字 */
+    cursor: pointer;
+}
+#create-new-chat:hover {
+    transform: scale(1.02);
+}
+#create-new-chat:active {
+    transform: scale(1);
+}
+
+/* 侧边栏下半部分：对话列表（预留 JS 动态渲染） */
+.side-bar-down {
+    width: 100%;
+    flex: 1;                            /* 占满剩余高度 */
+    min-height: 0;                      /* 允许收缩，为未来滚动列表做准备 */
+    /* 未来 JS 可在此区域追加 .chat-item 元素 */
+}
+
+
+/* ===== 8. 聊天主区域（右侧） ===== */
+.main-content {
+    flex: 1;                            /* 占满剩余宽度 */
+    min-width: 0;                       /* 防止内容撑开导致布局溢出 */
+    height: 100%;
+
+    /* ★ 改为 flex 列布局：消息区(可滚动) + 输入区(固定高度) */
+    display: flex;
+    flex-direction: column;
+}
+
+
+/* ----- 8a. 消息历史（可滚动区域） ----- */
+.message-history {
+    flex: 1;                            /* 占满剩余高度 */
+    min-height: 0;                      /* ★ 关键：允许收缩以腾出空间给输入区 */
+    overflow-y: auto;                   /* ★ 消息过多时出现纵向滚动条 */
+    /* 不再用 overflow-x: hidden，避免裁切右侧头像 */
+    /* word-break 在 .chat-bubble 上已做防溢出处理 */
+}
+
+/* 滚动条美化（Webkit 内核浏览器） */
+.message-history::-webkit-scrollbar {
+    width: 6px;
+}
+.message-history::-webkit-scrollbar-track {
+    background: transparent;
+}
+.message-history::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.25);
+    border-radius: 3px;
+}
+.message-history::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.45);
+}
+
+/* 消息列表内层容器 */
+/*
+   底部内边距 = 输入框高度，确保最后一条消息不会被悬浮的输入框遮挡。
+   用户滚动到底时，消息会停在输入框上方。
+*/
+.message-history-inner {
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 100%;                   /* 保证内容不足时也撑满 */
+    padding-bottom: 160px;              /* ★ 为悬浮输入框留出空间 */
+    display: flex;
+    flex-direction: column;
+}
+
+/* 消息列表 */
+.messages {
+    width: 100%;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 16px;                          /* ★ 消息之间的间距，替代 margin */
+    padding: 20px 28px 20px 24px;       /* 右侧多加 4px 防止头像被滚动条裁切 */
+    box-sizing: border-box;
+}
+
+
+/* ----- 8b. 单条消息（通用） ----- */
+/*
+   结构：.chat-message > (.chat-avatar + .chat-content > .chat-name + .chat-bubble)
+   两种变体：
+     - .other：别人（头像在左，气泡靠左）
+     - .self：自己（头像在右，气泡靠右）
+   JS 预留：新建消息时 clone 此结构或动态生成即可。
+*/
+.chat-message {
+    display: flex;
+    align-items: flex-start;            /* 头像与气泡顶部对齐 */
+    gap: 10px;                          /* 头像与气泡之间的间距 */
+    max-width: 80%;                     /* 消息最大宽度 */
+    animation: msg-fade-in 0.3s ease;   /* 新消息淡入动画 */
+}
+
+/* 消息淡入动画 */
+@keyframes msg-fade-in {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* 别人的消息：靠左 */
+.chat-message.other {
+    align-self: flex-start;
+}
+
+/* 自己的消息：靠右 */
+.chat-message.self {
+    align-self: flex-end;
+    flex-direction: row-reverse;        /* 头像挪到右侧 */
+    margin-right: 6px;                  /* 给右侧头像留出呼吸空间，防止贴边裁切 */
+}
+
+/* 头像圆圈 */
+.chat-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    flex-shrink: 0;                     /* 头像大小不变 */
+
+    /* 外观：白色半透明底 + 居中文字 */
+    background: rgba(255, 255, 255, 0.35);
+    backdrop-filter: blur(4px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    font-size: 16px;
+    font-weight: bold;
+    color: #fff;
+    text-shadow: 0 0 4px rgba(0, 0, 0, 0.4);
+    user-select: none;
+}
+
+/* 消息内容区（名称 + 气泡） */
+.chat-content {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+/* 发送者名称 */
+.chat-name {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.7);
+    padding: 0 4px;
+    user-select: none;
+}
+
+/* 对方消息名称靠左，自己消息名称靠右 */
+.chat-message.other .chat-name {
+    text-align: left;
+}
+.chat-message.self .chat-name {
+    text-align: right;
+}
+
+/* 聊天气泡 */
+.chat-bubble {
+    padding: 10px 16px;
+    border-radius: 18px;
+    font-size: 15px;
+    font-family: "Microsoft YaHei UI", serif;
+    line-height: 1.6;
+    word-break: break-word;             /* 长单词/链接自动换行 */
+    max-width: 400px;
+
+
+    transition: transform 0.2s, box-shadow 0.2s;
+    cursor: default;
+}
+/* 气泡 hover：微微上浮 + 阴影加深 */
+.chat-bubble:hover {
+    transform: translateY(-2px);
+}
+.chat-message.other .chat-bubble {
+    background: rgba(99, 149, 255, 0.85);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(99, 149, 255, 0.25);
+}
+
+/* 自己的气泡：蓝色主题 */
+.chat-message.self .chat-bubble {
+    background: rgba(99, 149, 255, 0.85);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(99, 149, 255, 0.25);
+}
+.chat-message.self .chat-bubble:hover {
+    box-shadow: 0 6px 16px rgba(99, 149, 255, 0.4);
+}
+.chat-message .chat-bubble::selection {
+    background-color: rgb(31 85 202 / 0.74);
+    color: white;
+}
+
+
+.messages .end-place {
+    width: 100%;
+    height: 20px;                       /* 仅做呼吸空间，不再需要 160px */
+    flex-shrink: 0;
+    /* 背景色已移除，保持透明 */
+}
+
+
+/* ----- 8d. 消息输入区（悬浮于消息之上） ----- */
+/*
+   通过 margin-top: -160px 让输入框向上移动自身高度，
+   叠在消息区底部，实现消息滚动"钻入"输入框背后的效果。
+   z-index 确保输入框显示在消息上方。
+*/
+.message-input {
+    width: 100%;
+    height: 160px;
+    flex-shrink: 0;                     /* ★ 高度固定，不被消息区挤压 */
+
+    margin-top: -160px;                 /* ★ 向上移动自身高度，叠在消息区上方 */
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    /* === 悬浮核心 === */
+    position: relative;
+    z-index: 10;                        /* 高于消息区，叠在其上方 */
+
+    /* 半透明背景 + 模糊：滚动时消息文字透过背景若隐若现 */
+    /*background: rgba(255, 255, 255, 0.12);*/
+    /*backdrop-filter: blur(1px);*/
+    /*-webkit-backdrop-filter: blur(8px);*/
+
+    /* 上边缘阴影：模拟"浮在消息上方"的立体感 */
+    /*box-shadow: 0 -8px 20px rgba(0, 0, 0, 0.15),*/
+    /*0 -2px 6px rgba(0, 0, 0, 0.08);*/
+
+    /* 上边缘渐变线：视觉分隔 */
+    /*border-top: 1px solid rgba(255, 255, 255, 0.2);*/
+}
+
+/* 输入框面板 */
+.message-input-box {
+    height: 140px;
+    width: 90%;
+    max-width: 1000px;                  /* 大屏幕下限制宽度，保持美观 */
+    border-radius: 24px;
+    background-color: rgb(228 228 228 / 0.82);
+    display: flex;
+    flex-direction: column;
+    box-shadow: rgb(105 105 105 / 0.58) 0 0 5px;
+    transition: box-shadow 0.3s;
+}
+.message-input-box:hover,
+.message-input-box:focus-within {       /* ★ 输入框内部聚焦时也触发 */
+    box-shadow:
+            rgb(105 105 105 / 0.58) 0 0 5px,
+            0 4px 8px rgba(0, 0, 0, 0.1),
+            inset -3px 3px 2px 1px rgba(255, 255, 255, 0.4);
+}
+
+/* 文本框区域（上 70%） */
+.message-input-box .textarea {
+    height: 70%;
+    width: 100%;
+}
+.message-input-box .textarea .textarea-inner {
+    width: 100%;
+    height: 100%;
+    padding: 20px 10px 0 20px;
+    box-sizing: border-box;
+}
+
+/* ★ 输入框本体 — JS 预留：通过 id="message-textarea" 获取输入内容 */
+/*    字体样式来自 .font-textarea 预设类 */
+#message-textarea {
+    box-sizing: border-box;
+    width: 100%;
+    height: 100%;
+    padding-right: 6px;
+    background-color: rgb(253 253 253 / 0);
+    border: none;
+    resize: none;                       /* 禁止手动拖拽大小 */
+    overflow: auto;
+}
+
+/* 输入框滚动条 */
+#message-textarea::-webkit-scrollbar {
+    width: 10px;
+}
+#message-textarea::-webkit-scrollbar-track {
+    background-color: transparent;
+    border-radius: 10px;
+}
+#message-textarea::-webkit-scrollbar-thumb {
+    background: rgb(250 242 251 / 0.77);
+    height: 30px;
+    border-radius: 10px;
+}
+#message-textarea::-webkit-scrollbar-thumb:hover {
+    cursor: pointer;
+    background: rgb(181 181 184 / 0.61);
+}
+
+/* 选中文字颜色 */
+#message-textarea::selection {
+    color: #f6e1eb;
+    background-color: rgb(148 148 148 / 0.57);
+}
+#message-textarea:focus {
+    outline: none;
+}
+
+/* 发送按钮区域（下 30%） */
+.message-input-box .send-area {
+    height: 30%;
+    width: 100%;
+}
+.send-area-inner {
+    box-sizing: border-box;
+    width: 100%;
+    height: 100%;
+    padding-right: 16px;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+}
+
+/* ★ 发送按钮 — JS 预留：通过 id="seed-button" 绑定点击发送事件 */
+#seed-button {
+    width: 32px;
+    height: 32px;
+    background-color: #ffffff;
+    border-radius: 50%;
+    box-shadow: rgb(105 105 105 / 0.56) 0 0 2px;
+    transition: box-shadow 0.4s, transform 0.1s;
+    cursor: pointer;
+
+    /* 预留：后续可添加发送图标（如 SVG 箭头） */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+#seed-button:hover {
+    box-shadow: rgb(105 105 105 / 0.34) 0 0 4px 1px;
+}
+#seed-button:active {
+    transform: scale(0.94);
+    transition: transform 0.1s;
+}
+
+
+/* ===== 9. 响应式：小屏幕适配 ===== */
+/*
+   当屏幕宽度较小时，隐藏侧边栏或缩小宽度。
+   JS 可配合控制侧边栏的展开/收起。
+*/
+@media (max-width: 768px) {
+    .side-bar {
+        width: 200px;                   /* 缩小侧边栏 */
+    }
+    .chat-message {
+        max-width: 90%;                 /* 消息更宽 */
+    }
+    .chat-bubble {
+        max-width: 280px;
+    }
+    .message-input-box {
+        width: 95%;
+    }
+}
+
+@media (max-width: 560px) {
+    .side-bar {
+        display: none;                  /* 手机端隐藏侧边栏 */
+    }
+    .chat-message {
+        max-width: 95%;
+    }
+    .chat-bubble {
+        max-width: 220px;
+    }
+    .messages {
+        padding: 12px 10px;
+    }
+    .header-bar .logo {
+        margin-left: 12px;
+    }
+}
+
+
+
+
+
