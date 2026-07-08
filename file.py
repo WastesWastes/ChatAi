@@ -110,12 +110,48 @@ class File:
             history_json["content"] = []
         with open(path,"w",encoding="utf-8") as f:
             f.write(json.dumps(history_json,indent=4))
-
+    @staticmethod
+    def system_prompt_rewrite(path: str,prompt: str):
+        """
+        写入系统提示词
+        :param path: 路径
+        :param prompt: 系统提示词
+        :return: 1/0
+        """
+        with open(path,"r",encoding="utf-8") as f:
+            content_json = json.load(f)
+        if content_json[0] != prompt:
+            content_json[0] = prompt
+            with open(path,"w",encoding="utf-8") as f:
+                f.write(json.dumps(content_json,indent=4))
+            print("写入system prompt成功")
+        return "1"
+    @staticmethod
+    def get_wav_text(name: str):
+        """
+        得到参考音频的文字
+        :param name:模型名
+        :return: 参考音频的文字
+        """
+        path_text = f"./tts_refer_wave/{name}/peace_{name}.txt"
+        with open(path_text,"r",encoding="utf-8") as f:
+            text = f.read()
+        return text
+    @staticmethod
+    def refer_wave_path(name: str):
+        """
+        得到参考音频的路径
+        :param name:模型名
+        :return: 参考音频的路径
+        """
+        path_wav = f"{config.BASE_DIR}/tts_refer_wave/{name}/peace_{name}.wav"
+        return path_wav
 if __name__ == '__main__':
     file = File()
-    file.content_clear(file.content_path)
-    file.history_clear(file.history_path)
-
+    # file.content_clear(file.content_path)
+    # file.history_clear(file.history_path)
+    # file.system_prompt_rewrite(file.content_path,config.PROMPT_SYSTEM)
+    print(file.get_wav_text("sangduonie"))
 
 
 

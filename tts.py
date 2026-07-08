@@ -95,7 +95,7 @@ class Tts:
                      top_k: str = "15",
                      top_p: str = "1",
                      temperature: str = "0.8",
-                     speed: str = "1",
+                     speed: str = "0.9",
                      sample_steps: str = "32",
                      if_sr: str = "false"):
         """
@@ -173,10 +173,21 @@ class Tts:
         text = text.replace(')', '').replace('(', '').replace('）', '').replace('（', '')
         return text
 if __name__ == '__main__':
+    from file import File
     tts = Tts()
     # tts.change_tts_model("wendi", "v4")
-    a = tts.generate_tts(tts.refer_wav_path,tts.prompt_text,"哈哈哈，及你太美")
-    tts.save_as_wav(a, "test")
+    # a = tts.generate_tts(tts.refer_wav_path,tts.prompt_text,"哈哈哈，元神牛逼")
+    # tts.save_as_wav(a, "save/test.wav")
+    tts_mode = config.TTS.TTS_MODE
+    refer_wav_path = File.refer_wave_path(name=tts_mode)
+    prompt_text = File.get_wav_text(name=tts_mode)
+    a = tts.generate_tts(
+        refer_wav_path=refer_wav_path,
+        prompt_text=prompt_text,
+        texts="哈，机密的机就是人机的机"
+    )
+    a = tts.save_as_wav(a, "save/test.wav")
+
 
 
 

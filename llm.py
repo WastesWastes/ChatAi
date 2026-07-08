@@ -5,11 +5,12 @@ class Llm:
     def __init__(self):
         self.deepseek_key = config.APIKEY_DEEPSEEK
         self.model = "deepseek-v4-flash"
+        self.prompt_system = config.PROMPT_SYSTEM
         self.messages = [
             {"role": "system", "content": "You are a helpful assistant"},
             {"role": "user", "content": "what is your name"}
         ]
-        self.thinking = "disabled"  #enabled
+        self.thinking = "enabled"  #enabled
         self.reasoning_effort = "high" #max
 
     def deepseek_chat(self,content):

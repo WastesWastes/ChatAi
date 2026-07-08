@@ -51,9 +51,6 @@ async def chat_send(q: ChatSend = Query(...)):
     return  a
 
 
-
-
-
 # 清空记录
 @app.get("/api/chat/clear")
 async def chat_clear():
@@ -68,6 +65,20 @@ async def chat_clear():
 async def chat_history():
     pass
 
+#更改llm设置
+class ChatSetting(BaseModel):
+    llm_model: str
+    thinking: str
+    reasoning_effort: str
+@app.get("/api/chat/setting")
+async def chat_setting(q: ChatSetting = Query(...)):
+    chat_setting_api = Api()
+    a = chat_setting_api.change_llm_setting(
+        llm_model=q.llm_model,
+        thinking=q.thinking,
+        reasoning_effort=q.reasoning_effort
+    )
+    return a
 
 
 # 获取tts语音
@@ -82,12 +93,30 @@ async def chat_tts(q: ChatTts = Query(...)):
                              headers={"Content-Disposition": "attachment; filename=tts.wav"})
 
 
-
-
 # 修改tts配置
-@app.get("/api/chat/tts/save")
-async def chat_tts_save(text: str):
-    pass
+class ChatTtsSetting(BaseModel):
+    prompt_language: str
+    text_language: str
+    top_k: str
+    top_p: str
+    temperature: str
+    speed: str
+    sample_steps: str
+    if_sr: str
+@app.get("/api/chat/tts/setting")
+async def chat_tts_setting(q: ChatTtsSetting = Query(...)):
+    tts_setting_api = Api()
+    a = tts_setting_api.change_tts_setting(
+        prompt_language=q.prompt_language,
+        text_language=q.text_language,
+        top_k=q.top_k,
+        top_p=q.top_p,
+        temperature=q.temperature,
+        speed=q.speed,
+        sample_steps=q.sample_steps,
+        if_sr=q.if_sr
+    )
+    return a
 
 
 
