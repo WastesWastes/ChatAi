@@ -102,11 +102,11 @@
 .boot {
     width: 100vw;
     height: 100vh;                      /* 占满整个视口 */
-    background-image: url("../img/alice.jpeg");
+    background-image: url("../img/sangduonie.png");
     background-size: cover;
     background-repeat: no-repeat;
     background-position: center;
-
+    /*添加模糊*/
     display: flex;
     flex-direction: column;             /* 垂直排列：header → 主内容 */
     overflow: hidden;                   /* 禁止页面级滚动，由内部区域自行滚动 */
@@ -145,6 +145,57 @@
 
 .header-bar::after {
     background: rgb(255 255 255 / 0);
+}
+
+/* 侧边栏切换按钮（汉堡图标） */
+.sidebar-toggle {
+    width: 36px;
+    height: 36px;
+    margin-left: 16px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+    border-radius: 50%;
+    transition: background-color 0.2s;
+    flex-shrink: 0;
+}
+.sidebar-toggle:hover {
+    background-color: rgba(255, 255, 255, 0.12);
+}
+.sidebar-toggle span {
+    display: block;
+    width: 18px;
+    height: 2px;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 2px;
+    transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
+                opacity 0.2s,
+                width 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* 收起态 → 汉堡变箭头（弹性动画） */
+.sidebar-toggle.collapsed span:nth-child(1) {
+    transform: translateY(7px) rotate(45deg);
+    width: 14px;
+}
+.sidebar-toggle.collapsed span:nth-child(2) {
+    opacity: 0;
+    transform: scaleX(0);
+}
+.sidebar-toggle.collapsed span:nth-child(3) {
+    transform: translateY(-7px) rotate(-45deg);
+    width: 14px;
+}
+
+/* 按钮整体 hover 微动 */
+.sidebar-toggle {
+    transition: background-color 0.2s, transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.sidebar-toggle:active {
+    transform: scale(0.9);
 }
 
 /* Logo 图标 */
@@ -201,6 +252,33 @@
     animation-timing-function: cubic-bezier(0.34, -0.64, 0.4, 1.66);
     animation-delay: 0.4s;
     animation-fill-mode: forwards;
+
+    /* 收起/展开过渡 */
+    transition: width 0.4s cubic-bezier(0.34, 1.56, 0.64, 1),
+                opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                margin 0.4s cubic-bezier(0.34, 1.56, 0.64, 1),
+                padding 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    overflow: hidden;
+}
+
+/* 侧边栏展开时子元素淡入 */
+.side-bar-inner {
+    transition: opacity 0.3s 0.15s;
+}
+.side-bar.collapsed .side-bar-inner {
+    opacity: 0;
+    transition: opacity 0.15s;
+}
+
+/* 收起态：强制宽度归零，释放全部空间给聊天区 */
+.side-bar.collapsed {
+    width: 0 !important;
+    min-width: 0 !important;
+    flex: 0 0 0 !important;
+    opacity: 0;
+    padding: 0;
+    margin: 0;
+    pointer-events: none;
 }
 
 /* 侧边栏内容面板 */
@@ -251,7 +329,7 @@
     text-wrap: nowrap;
     text-align: center;
     line-height: 50px;
-
+    color: whitesmoke;
     transition: background-color 0.2s, box-shadow 0.2s, transform 0.2s;
 
     user-select: none;                  /* 禁止选中文字 */
@@ -384,17 +462,28 @@
     flex-shrink: 0;                     /* 头像大小不变 */
 
     /* 外观：白色半透明底 + 居中文字 */
-    background: rgba(255, 255, 255, 0.35);
-    backdrop-filter: blur(4px);
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    /*background: rgba(255, 255, 255, 0.35);*/
+    /*backdrop-filter: blur(4px);*/
+    /*display: flex;*/
+    /*justify-content: center;*/
+    /*align-items: center;*/
 
-    font-size: 16px;
-    font-weight: bold;
-    color: #fff;
-    text-shadow: 0 0 4px rgba(0, 0, 0, 0.4);
+    /*font-size: 16px;*/
+    /*font-weight: bold;*/
+    /*color: #fff;*/
+    /*text-shadow: 0 0 4px rgba(0, 0, 0, 0.4);*/
     user-select: none;
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-color: rgb(255 255 255 / 0.34);
+    box-shadow: rgb(25 25 25 / 0.59) 0 0 2px;
+}
+.chat-avatar-other{
+    background-image: url("../img/sangtou1.png");
+}
+.chat-avatar-self{
+    background-image: url("../img/manbo.png");
 }
 
 /* 消息内容区（名称 + 气泡） */
@@ -582,10 +671,28 @@
     box-sizing: border-box;
     width: 100%;
     height: 100%;
-    padding-right: 16px;
+    padding: 0 16px;
     display: flex;
-    justify-content: flex-end;
+    justify-content: space-between;     /* ★ 设置栏靠左，发送按钮靠右 */
     align-items: center;
+}
+
+/* ===== LLM 模型设置选择栏 ===== */
+.model-settings-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.model-setting-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+.model-label {
+    font-size: 11px;
+    color: #777;
+    font-family: "Microsoft YaHei UI", serif;
+    white-space: nowrap;
 }
 
 /* ★ 发送按钮 — JS 预留：通过 id="seed-button" 绑定点击发送事件 */
@@ -612,7 +719,453 @@
 }
 
 
-/* ===== 9. 响应式：小屏幕适配 ===== */
+/* ===== 9. TTS 设置按钮（侧边栏，与新建对话同款） ===== */
+#tts-settings-sidebar-btn {
+    width: 100%;
+    height: 50px;
+    overflow: hidden;
+    text-wrap: nowrap;
+    text-align: center;
+    line-height: 50px;
+    color: whitesmoke;
+    transition: background-color 0.2s, box-shadow 0.2s, transform 0.2s;
+
+    user-select: none;
+    cursor: pointer;
+    margin-top: 14px;                   /* 与新建对话按钮拉开间距 */
+}
+#tts-settings-sidebar-btn:hover {
+    transform: scale(1.02);
+}
+#tts-settings-sidebar-btn:active {
+    transform: scale(1);
+}
+
+/* ===== 10. TTS 设置弹窗 ===== */
+/* 遮罩层 */
+.tts-modal-overlay {
+    display: none;                      /* 默认隐藏，JS 控制 */
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    justify-content: center;
+    align-items: center;
+}
+.tts-modal-overlay.active {
+    display: flex;
+}
+
+/* 弹窗主体 — 覆盖部分 .glass 默认值 */
+.tts-modal {
+    width: 520px;
+    max-width: 92vw;
+    max-height: 85vh;
+    border-radius: 24px !important;
+    background: rgba(255, 255, 255, 0.92) !important;
+    backdrop-filter: blur(16px) !important;
+    -webkit-backdrop-filter: blur(16px) !important;
+    box-shadow:
+        0 12px 40px rgba(0, 0, 0, 0.25),
+        inset 0 1px 0 rgba(255, 255, 255, 0.6) !important;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    animation: tts-modal-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes tts-modal-in {
+    from {
+        opacity: 0;
+        transform: translateY(24px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+/* 覆盖 glass 伪元素（避免干扰内容可读性） */
+.tts-modal::after,
+.tts-modal::before {
+    display: none;
+}
+
+/* 弹窗头部 */
+.tts-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 18px 24px 12px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    flex-shrink: 0;
+}
+.tts-modal-title {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: #222;
+    text-shadow: none;
+    letter-spacing: 2px;
+}
+.tts-modal-close {
+    width: 34px;
+    height: 34px;
+    border: none;
+    background: transparent;
+    font-size: 24px;
+    line-height: 1;
+    cursor: pointer;
+    border-radius: 50%;
+    color: #888;
+    transition: background-color 0.2s, color 0.2s;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.tts-modal-close:hover {
+    background-color: rgba(0, 0, 0, 0.06);
+    color: #333;
+}
+
+/* 弹窗内容区 */
+.tts-modal-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+.tts-modal-body::-webkit-scrollbar {
+    width: 5px;
+}
+.tts-modal-body::-webkit-scrollbar-track {
+    background: transparent;
+}
+.tts-modal-body::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.15);
+    border-radius: 3px;
+}
+
+/* 表单行 */
+.tts-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.tts-form-toggle {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+}
+.tts-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: #444;
+    font-family: "Microsoft YaHei UI", serif;
+}
+.tts-range-hint {
+    font-size: 11px;
+    color: #999;
+    font-weight: normal;
+}
+
+/* 滑块 + 数字输入 同行 */
+.tts-input-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.tts-range {
+    flex: 1;
+    height: 6px;
+    accent-color: #6395ff;
+    cursor: pointer;
+}
+.tts-number {
+    width: 72px;
+    height: 30px;
+    padding: 4px 8px;
+    border: 1px solid #d0d0d0;
+    border-radius: 8px;
+    font-size: 13px;
+    font-family: "Microsoft YaHei UI", serif;
+    text-align: center;
+    background: #fafafa;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+.tts-number:focus {
+    outline: none;
+    border-color: #6395ff;
+    box-shadow: 0 0 0 3px rgba(99, 149, 255, 0.15);
+    background: #fff;
+}
+.tts-number:invalid {
+    border-color: #e53e3e;
+    box-shadow: 0 0 0 3px rgba(229, 62, 62, 0.1);
+}
+
+/* ===== 统一下拉框（TTS 弹窗 + 底部模型选择栏） ===== */
+/*
+   现代风格：无边框底色 + 悬浮边框 + 自定义箭头
+   appearance: none 移除原生三角，用内联 SVG 替代
+*/
+
+/* ===== 自定义下拉框（替代原生 select） ===== */
+/*
+   结构：.c-select 包裹隐藏的原生 <select> + 触发器 + 下拉面板
+   原生 select 保留以维持表单语义和 JS 取值。
+*/
+
+/* 容器 */
+.c-select {
+    position: relative;
+    display: inline-block;
+    user-select: none;
+}
+/* 将原生 select 隐藏（保留占位，用 JS 同步值） */
+.c-select select {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    pointer-events: none;               /* 由触发器接管点击 */
+}
+
+/* 触发器（显示当前选中值 + 箭头） */
+.c-select-trigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    height: 34px;
+    padding: 0 10px 0 12px;
+    background-color: #f2f3f7;
+    border: 1.5px solid transparent;
+    border-radius: 10px;
+    font-size: 13px;
+    font-family: "Microsoft YaHei UI", serif;
+    font-weight: 500;
+    color: #2c3e50;
+    letter-spacing: 0.3px;
+    cursor: pointer;
+    transition: background-color 0.25s, border-color 0.25s, box-shadow 0.25s;
+    min-width: 60px;
+}
+.c-select-trigger:hover {
+    background-color: #e8eaf0;
+    border-color: #c5c9d6;
+}
+/* 箭头 */
+.c-select-arrow {
+    flex-shrink: 0;
+    width: 12px;
+    height: 8px;
+    transition: transform 0.2s;
+}
+.c-select.open .c-select-arrow {
+    transform: rotate(180deg);
+}
+
+/* 下拉选项面板 */
+.c-select-options {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    right: 0;
+    z-index: 100;
+    min-width: 100%;
+
+    /* ★ 圆角 + 无边框 + 阴影 */
+    background: #fff;
+    border: none;
+    border-radius: 12px;
+    padding: 6px;
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.14), 0 2px 6px rgba(0, 0, 0, 0.06);
+
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-4px);
+    transition: opacity 0.18s, visibility 0.18s, transform 0.18s;
+}
+.c-select.open .c-select-options {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+/* 单个选项 */
+.c-select-option {
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-family: "Microsoft YaHei UI", serif;
+    font-weight: 500;
+    color: #333;
+    cursor: pointer;
+    transition: background-color 0.15s;
+    white-space: nowrap;
+}
+/* ★ hover 灰底 */
+.c-select-option:hover {
+    background-color: #f0f1f4;
+}
+/* 选中态 */
+.c-select-option.selected {
+    color: #6395ff;
+    font-weight: 600;
+}
+
+/* ---------- 底部模型栏专属（更紧凑） ---------- */
+.model-settings-bar .c-select-trigger {
+    height: 28px;
+    padding: 0 8px 0 10px;
+    border-radius: 8px;
+    font-size: 12px;
+    background-color: rgba(255, 255, 255, 0.75);
+    backdrop-filter: blur(4px);
+}
+.model-settings-bar .c-select-trigger:hover {
+    background-color: rgba(255, 255, 255, 0.92);
+    border-color: #b0b8cc;
+}
+.model-settings-bar .c-select-options {
+    /* ★ 向上展开，避免超出页面底部 */
+    top: auto;
+    bottom: calc(100% + 6px);
+    /* 选项面板宽度 = 触发器宽度 */
+    left: 0;
+    right: 0;
+
+    border-radius: 10px;
+    padding: 4px;
+
+    /* 动画方向反转（从下方弹入） */
+    transform: translateY(4px);
+}
+.model-settings-bar .c-select.open .c-select-options {
+    transform: translateY(0);
+}
+.model-settings-bar .c-select-option {
+    padding: 6px 10px;
+    border-radius: 7px;
+    font-size: 12px;
+}
+
+/* Toggle 开关 */
+.tts-switch {
+    position: relative;
+    display: inline-block;
+    width: 48px;
+    height: 26px;
+    cursor: pointer;
+}
+.tts-switch input {
+    display: none;
+}
+.tts-switch-slider {
+    position: absolute;
+    inset: 0;
+    background: #ccc;
+    border-radius: 26px;
+    transition: background 0.25s;
+}
+.tts-switch-slider::after {
+    content: '';
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 20px;
+    height: 20px;
+    background: #fff;
+    border-radius: 50%;
+    transition: transform 0.25s;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+.tts-switch input:checked + .tts-switch-slider {
+    background: #6395ff;
+}
+.tts-switch input:checked + .tts-switch-slider::after {
+    transform: translateX(22px);
+}
+
+/* 验证信息 */
+.tts-validation-msg {
+    font-size: 11px;
+    color: #e53e3e;
+    min-height: 14px;
+    transition: opacity 0.2s;
+}
+
+/* API 调试面板 */
+.tts-debug-panel {
+    margin: 0 24px 6px;
+    padding: 10px 14px;
+    background: #f5f6fa;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    flex-shrink: 0;
+}
+.tts-debug-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: #555;
+    margin-bottom: 4px;
+}
+.tts-debug-url {
+    display: block;
+    font-size: 11px;
+    font-family: "Consolas", "Courier New", monospace;
+    color: #2d6a4f;
+    word-break: break-all;
+    line-height: 1.5;
+    background: #fff;
+    padding: 6px 8px;
+    border-radius: 6px;
+    border: 1px solid #e8e8e8;
+}
+
+/* 弹窗底部按钮 */
+.tts-modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 24px 18px;
+    border-top: 1px solid rgba(0, 0, 0, 0.06);
+    flex-shrink: 0;
+}
+.tts-btn {
+    height: 36px;
+    padding: 0 22px;
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
+    font-family: "Microsoft YaHei UI", serif;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.15s, box-shadow 0.2s;
+}
+.tts-btn:active {
+    transform: scale(0.96);
+}
+.tts-btn-reset {
+    background: #eee;
+    color: #555;
+}
+.tts-btn-reset:hover {
+    background: #ddd;
+}
+.tts-btn-save {
+    background: #6395ff;
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(99, 149, 255, 0.3);
+}
+.tts-btn-save:hover {
+    background: #4a7ff5;
+    box-shadow: 0 4px 14px rgba(99, 149, 255, 0.4);
+}
+
+/* ===== 11. 响应式：小屏幕适配 ===== */
 /*
    当屏幕宽度较小时，隐藏侧边栏或缩小宽度。
    JS 可配合控制侧边栏的展开/收起。

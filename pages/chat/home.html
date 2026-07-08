@@ -12,6 +12,9 @@
     <!--        header-->
     <div class="container">
         <div class="header-bar glass">
+            <div id="sidebar-toggle" class="sidebar-toggle" title="收起/展开侧边栏">
+                <span></span><span></span><span></span>
+            </div>
             <div class="logo"></div>
             <div class="header-bar-head font-head">
                 <span>对话</span>
@@ -27,6 +30,9 @@
                     <div class="side-bar-up">
                         <div id="create-new-chat" class="glass font-one">
                             <span>新建对话</span>
+                        </div>
+                        <div id="tts-settings-sidebar-btn" class="glass font-one">
+                            <span>TTS 设置</span>
                         </div>
                     </div>
                     <div class="side-bar-down">
@@ -56,11 +62,131 @@
                         </div>
                         <div class="send-area">
                             <div class="send-area-inner">
+                                <!-- LLM 模型设置选择栏 -->
+                                <div class="model-settings-bar" id="model-settings-bar">
+                                    <div class="model-setting-item">
+                                        <label class="model-label" for="llm-model-select">模型</label>
+                                        <select id="llm-model-select" class="model-select">
+                                            <option value="deepseek-v4-flash">deepseek-v4-flash</option>
+                                            <option value="deepseek-v4-pro" selected>deepseek-v4-pro</option>
+                                        </select>
+                                    </div>
+                                    <div class="model-setting-item">
+                                        <label class="model-label" for="thinking-select">思考</label>
+                                        <select id="thinking-select" class="model-select">
+                                            <option value="enabled" selected>enabled</option>
+                                            <option value="disabled">disabled</option>
+                                        </select>
+                                    </div>
+                                    <div class="model-setting-item">
+                                        <label class="model-label" for="reasoning-effort-select">深度</label>
+                                        <select id="reasoning-effort-select" class="model-select">
+                                            <option value="high" selected>high</option>
+                                            <option value="max">max</option>
+                                        </select>
+                                    </div>
+                                </div>
                                 <div id="seed-button"></div>
                             </div>
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+    <!-- TTS 设置弹窗 -->
+    <div class="tts-modal-overlay" id="tts-modal-overlay">
+        <div class="tts-modal glass">
+            <div class="tts-modal-header">
+                <span class="tts-modal-title font-head">TTS 设置</span>
+                <button class="tts-modal-close" id="tts-modal-close">&times;</button>
+            </div>
+            <div class="tts-modal-body">
+                <!-- 提示语言 -->
+                <div class="tts-form-group">
+                    <label class="tts-label" for="tts-prompt-language">提示语言 (prompt_language)</label>
+                    <select id="tts-prompt-language" class="tts-select">
+                        <option value="中文" selected>中文</option>
+                        <option value="English">English</option>
+                        <option value="日本語">日本語</option>
+                        <option value="韩语">韩语</option>
+                    </select>
+                    <span class="tts-validation-msg" data-for="tts-prompt-language"></span>
+                </div>
+                <!-- 文本语言 -->
+                <div class="tts-form-group">
+                    <label class="tts-label" for="tts-text-language">文本语言 (text_language)</label>
+                    <select id="tts-text-language" class="tts-select">
+                        <option value="中文" selected>中文</option>
+                        <option value="English">English</option>
+                        <option value="日本語">日本語</option>
+                        <option value="韩语">韩语</option>
+                    </select>
+                    <span class="tts-validation-msg" data-for="tts-text-language"></span>
+                </div>
+                <!-- Top-K -->
+                <div class="tts-form-group">
+                    <label class="tts-label" for="tts-top-k">Top-K <span class="tts-range-hint">(1-100)</span></label>
+                    <div class="tts-input-row">
+                        <input type="range" id="tts-top-k-range" class="tts-range" min="1" max="100" value="15">
+                        <input type="number" id="tts-top-k" class="tts-number" min="1" max="100" value="15">
+                    </div>
+                    <span class="tts-validation-msg" data-for="tts-top-k"></span>
+                </div>
+                <!-- Top-P -->
+                <div class="tts-form-group">
+                    <label class="tts-label" for="tts-top-p">Top-P <span class="tts-range-hint">(0-1)</span></label>
+                    <div class="tts-input-row">
+                        <input type="range" id="tts-top-p-range" class="tts-range" min="0" max="1" step="0.01" value="1">
+                        <input type="number" id="tts-top-p" class="tts-number" min="0" max="1" step="0.01" value="1">
+                    </div>
+                    <span class="tts-validation-msg" data-for="tts-top-p"></span>
+                </div>
+                <!-- 温度 -->
+                <div class="tts-form-group">
+                    <label class="tts-label" for="tts-temperature">温度 (temperature) <span class="tts-range-hint">(0-2)</span></label>
+                    <div class="tts-input-row">
+                        <input type="range" id="tts-temperature-range" class="tts-range" min="0" max="2" step="0.01" value="0.8">
+                        <input type="number" id="tts-temperature" class="tts-number" min="0" max="2" step="0.01" value="0.8">
+                    </div>
+                    <span class="tts-validation-msg" data-for="tts-temperature"></span>
+                </div>
+                <!-- 语速 -->
+                <div class="tts-form-group">
+                    <label class="tts-label" for="tts-speed">语速 (speed) <span class="tts-range-hint">(0.1-2.0)</span></label>
+                    <div class="tts-input-row">
+                        <input type="range" id="tts-speed-range" class="tts-range" min="0.1" max="2" step="0.01" value="0.9">
+                        <input type="number" id="tts-speed" class="tts-number" min="0.1" max="2" step="0.01" value="0.9">
+                    </div>
+                    <span class="tts-validation-msg" data-for="tts-speed"></span>
+                </div>
+                <!-- 采样步数 -->
+                <div class="tts-form-group">
+                    <label class="tts-label" for="tts-sample-steps">采样步数 (sample_steps) <span class="tts-range-hint">(1-100)</span></label>
+                    <div class="tts-input-row">
+                        <input type="range" id="tts-sample-steps-range" class="tts-range" min="1" max="100" value="32">
+                        <input type="number" id="tts-sample-steps" class="tts-number" min="1" max="100" value="32">
+                    </div>
+                    <span class="tts-validation-msg" data-for="tts-sample-steps"></span>
+                </div>
+                <!-- 超分辨率 -->
+                <div class="tts-form-group tts-form-toggle">
+                    <label class="tts-label" for="tts-if-sr">超分辨率 (if_sr)</label>
+                    <label class="tts-switch">
+                        <input type="checkbox" id="tts-if-sr">
+                        <span class="tts-switch-slider"></span>
+                    </label>
+                    <span class="tts-validation-msg" data-for="tts-if-sr"></span>
+                </div>
+            </div>
+            <!-- API 调试信息区 -->
+            <div class="tts-debug-panel" id="tts-debug-panel">
+                <div class="tts-debug-title">📡 API 请求预览</div>
+                <code class="tts-debug-url" id="tts-debug-url"></code>
+            </div>
+            <div class="tts-modal-footer">
+                <button id="tts-reset-btn" class="tts-btn tts-btn-reset">恢复默认</button>
+                <button id="tts-save-btn" class="tts-btn tts-btn-save">保存设置</button>
             </div>
         </div>
     </div>
